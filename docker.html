@@ -1,0 +1,342 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>reveal.js</title>
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/white.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section>
+					<h1>Where did Docker come from?</h1>
+				</section>
+
+				<section>
+					<h2>About me</h2>
+					<ul>
+						<li>Scala Dev @ VirtusLab</li>
+						<li>Like checking new things</li>
+						<li>Car guy</li>
+					</ul>
+				</section>
+
+				<section>
+					<section>
+						<h2>Work difficulties</h2>
+					</section>
+					<section>
+						<img src="img/customer_meme.jpeg" />
+						<h2 class="fragment">Customers</h2>
+					</section>
+					<section>
+						<img src="img/code_base_meme.png" />
+						<h2 class="fragment">Code base</h2>
+					</section>
+					<section>
+						<img src="img/class_meme.jpg" height="550px" />
+						<h2 class="fragment">Documentation</h2>
+					</section>
+					<section>
+					    <img src="img/works_meme.jpg" />
+					    <h2 class="fragment">ENVIRONMENT</h2>
+					</section>
+				</section>
+
+				<section>
+				    <h2>VMs vs Containers</h2>
+				    <img src="img/vm_works.jpg" width="400px"/> <img src="img/docker_works.jpg" width="400px"/>
+				</section>
+
+				<section>
+					<section>
+						<h2>Long, long time ago</h2>
+						<h3 class="fragment">chroot</h3>
+					</section>
+					<section>
+						<img class="stretch" src="img/dinosaur.jpg" />
+						<small><a href="http://i.ebayimg.com/00/s/MjU3WDMwMA==/z/AH0AAOSwEK9UA8uy/$_35.JPG?set_id=2">
+							http://i.ebayimg.com/00/s/MjU3WDMwMA==/z/AH0AAOSwEK9UA8uy/$_35.JPG?set_id=2
+						</a></small>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>Namespaces &amp; cgroups</h2>
+					</section>
+
+					<section>
+						<h3>show time</h3>
+
+						<aside class="notes">
+							1. Uruchomić chrome
+							2. Polecenie `lsns`
+							3. Polecenie `systemctl status`
+							4. Polecenie `systemd-cgtop`
+						</aside>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>LXC</h2>
+					</section>
+					<section>
+						<img class="stretch" src="img/woody.jpg" />
+						<small><a href="https://s-media-cache-ak0.pinimg.com/originals/c2/eb/9e/c2eb9e91b2bb4ee0801f676bf4fae515.jpg">
+							https://s-media-cache-ak0.pinimg.com/originals/c2/eb/9e/c2eb9e91b2bb4ee0801f676bf4fae515.jpg
+						</a></small>
+					</section>
+					<section>
+						<h2>Briefly</h2>
+						<ul>
+							<li>system-level virtualization</li>
+							<li>it is not virtual machine</li>
+							<li>cgroups usage</li>
+							<li>provides process container</li>
+						</ul>
+					</section>
+					<section>
+							<h2>Available commands</h2>
+							<ul>
+									<li class="fragment"># lxc-create -n NAME -t TEMPLATE -- TEMPLATE_OPTIONS</li>
+									<li class="fragment"># lxc-start -n NAME -d</li>
+									<li class="fragment"># lxc-stop -n NAME</li>
+									<li class="fragment"># lxc-destroy -n NAME</li>
+									<li class="fragment"># lxc-console -n NAME</li>
+									<li class="fragment"># lxc-attach -n NAME</li>
+							</ul>
+					</section>
+					<section>
+							<h2>Internet inside container</h2>
+							<h4>Host configuration</h4>
+							<pre><code data-trim>
+# sysctl net.ipv4.ip_forward=1
+# dhcpd lxcbr0
+# iptables -t nat -A POSTROUTING -o wlp3s0 -j MASQUERADE
+# iptables -A FORWARD -i wlp3s0 -o lxcbr0 -m state \
+			--state RELATED,ESTABLISHED -j ACCEPT
+# iptables -A FORWARD -i lxcbr0 -o wlp3s0 -j ACCEPT
+							</code></pre>
+							<h4>LXC containter config</h4>
+							<pre><code data-trim>
+lxc.network.type = veth
+lxc.network.flags= = up
+lxc.network.link = lxcbr0
+							</code></pre>
+					</section>
+					<section>
+							<h2>Pros</h2>
+							<ul>
+									<li class="fragment">no host pollution</li>
+									<li class="fragment">powerful configuration</li>
+									<li class="fragment">no virtualization overhead</li>
+									<li class="fragment">works in background</li>
+							</ul>
+					</section>
+
+					<section>
+							<h2>Cons</h2>
+							<ul>
+									<li class="fragment">bare distro after install</li>
+									<li class="fragment">difficulties in network configuration</li>
+									<li class="fragment">some problems when running different distro than host</li>
+									<li class="fragment">requires Linux indepth knowledge</li>
+							</ul>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>Docker</h2>
+					</section>
+
+					<section>
+						<img class="stretch" src="img/buzz.jpg" />
+						<small><a href="https://s-media-cache-ak0.pinimg.com/originals/c2/eb/9e/c2eb9e91b2bb4ee0801f676bf4fae515.jpg">
+							https://s-media-cache-ak0.pinimg.com/originals/c2/eb/9e/c2eb9e91b2bb4ee0801f676bf4fae515.jpg
+						</a></small>
+					</section>
+
+					<section>
+							<h2>Briefly</h2>
+							<ul>
+									<li class="fragment">written in GO</li>
+									<li class="fragment">used to use LXC as engine</li>
+									<li class="fragment">git-like managment</li>
+							</ul>
+					</section>
+
+					<section>
+							<h2>Pros</h2>
+							<ul>
+									<li class="fragment">runs everywhere!</li>
+									<li class="fragment">huge community support</li>
+									<li class="fragment">rich documentation with examples</li>
+									<li class="fragment">predefined images in repository</li>
+							</ul>
+					</section>
+
+					<section>
+							<h2>Cons</h2>
+
+							<p>not found yet</p>
+					</section>
+
+					<section>
+						<img class="stretch" src="img/pricing.png" />
+					</section>
+
+					<section>
+						<img class="stretch" src="img/compatibility.png" />
+					</section>
+
+					<section>
+						<img class="stretch" src="img/comparison.png" />
+					</section>
+
+					<section>
+						<img class="stretch" src="img/structure_old.png" />
+						<small><a href="https://imgur.com/MJHfm1c">https://imgur.com/MJHfm1c</a></small>
+					</section>
+
+					<section>
+						<img class="stretch" src="img/structure.png" />
+					</section>
+
+					<section
+					<h3>Dockerfile</h3>
+<pre><code>
+# Scala and sbt Dockerfile
+#
+# https://github.com/hseeberger/scala-sbt
+#
+FROM  openjdk:8
+
+ENV SCALA_VERSION 2.12.2
+ENV SBT_VERSION 0.13.15
+
+RUN touch /usr/lib/jvm/java-8-openjdk-amd64/release
+
+RUN \
+  curl -fsL http://downloads.typesafe.com/scala/$SCALA_VERSION/scala-$SCALA_VERSION.tgz | tar xfz - -C /root/ && \
+  echo >> /root/.bashrc && \
+  echo 'export PATH=~/scala-$SCALA_VERSION/bin:$PATH' >> /root/.bashrc
+
+RUN \
+  curl -L -o sbt-$SBT_VERSION.deb http://dl.bintray.com/sbt/debian/sbt-$SBT_VERSION.deb && \
+  dpkg -i sbt-$SBT_VERSION.deb && \
+  rm sbt-$SBT_VERSION.deb && \
+  apt-get update && \
+  apt-get install sbt && \
+  sbt sbtVersion
+
+WORKDIR /root
+</code></pre>
+					</section>
+
+					<section>
+<pre><code>
+FROM     ubuntu
+
+RUN apt-get update && apt-get install -y openssh-server nano inetutils-ping
+RUN mkdir /var/run/sshd
+RUN echo 'root:screencast' | chpasswd
+RUN sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+
+EXPOSE 22
+CMD ["/usr/sbin/sshd", "-D"]
+</code></pre>
+					</section>
+
+					<section>
+						<h3>Docker compose</h3>
+						<pre><code>
+version: "3"
+services:
+  postgres:
+    image: postgres:9.6.2-alpine
+    environment:
+      POSTGRES_USER: "xxx"
+      POSTGRES_PASSWORD: "changeme"
+      POSTGRES_DB: "pip"
+    ports:
+      - "5432:5432"
+
+  postgres-test:
+    image: postgres:9.6.2-alpine
+    environment:
+      POSTGRES_USER: "xxx"
+      POSTGRES_PASSWORD: "changeme"
+      POSTGRES_DB: "pip"
+    ports:
+      - "5433:5432"
+
+  pip:
+    image: bkowalik:demo
+    environment:
+      POSTGRES_HOST: "postgres"
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: "xxx"
+      POSTGRES_PASSWORD: "changeme"
+      POSTGRES_DB: "pip"
+    ports:
+      - "9000:9000"
+    links:
+      - postgres
+						</code></pre>
+					</section>
+					<section>
+					    <h2>Where to use?</h2>
+					    <ul>
+					        <li class="fragment">integration testing</li>
+					        <li class="fragment">multiple environments</li>
+					        <li class="fragment">easy sharing</li>
+					    </ul>
+					</section>
+				</section>
+
+				<section>
+				    <h1>Questions?</h1>
+				    <h1 class="fragment">Thanks!</h1>
+				</section>
+
+			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info about config & dependencies:
+			// - https://github.com/hakimel/reveal.js#configuration
+			// - https://github.com/hakimel/reveal.js#dependencies
+			Reveal.initialize({
+				history: true,
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+</html>
